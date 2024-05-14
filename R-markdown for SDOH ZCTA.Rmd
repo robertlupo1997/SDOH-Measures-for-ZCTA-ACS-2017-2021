@@ -1,0 +1,44 @@
+---
+title: "SDOH Measures for ZCTA, ACS 2017-2021"
+author: "RobertLupo"
+date: "2024-05-14"
+output: word_document
+---
+
+```{r}
+setwd("C:/Users/Trey/Documents/GitHub/SDOH-Measures-for-ZCTA-ACS-2017-2021/SDOH Measures for ZCTA, ACS 2017-2021")
+data <- read.csv("bumh-rgsq_version_37.csv")
+
+#check missing data
+# Assuming 'data' is your dataset
+library(naniar)
+
+# Visualize missing values with downsampling
+vis_miss(dplyr::slice_sample(data, n = 1000))
+
+# Or suppress the warning for large data
+vis_miss(data, warn_large_data = FALSE)
+
+library(naniar)
+
+# Assuming 'data' is your dataset
+missing_rows <- data[!complete.cases(data), ]
+
+# View the first few rows of the new data frame
+head(missing_rows)
+
+# Since the dataset is large enough, we can remove the missing data entries
+# Remove rows with missing values
+clean_data <- na.omit(data)
+
+# Check the structure of the cleaned data
+str(clean_data)
+
+```
+
+```{r}
+
+
+
+```
+
