@@ -6,7 +6,7 @@ output: word_document
 ---
 
 ```{r}
-setwd("C:/Users/Trey/Documents/GitHub/SDOH-Measures-for-ZCTA-ACS-2017-2021/SDOH Measures for ZCTA, ACS 2017-2021")
+setwd("C:/Users/Trey/Documents/GitHub/SDOH-Measures-for-ZCTA-ACS-2017-2021")
 data <- read.csv("bumh-rgsq_version_37.csv")
 
 #check missing data
