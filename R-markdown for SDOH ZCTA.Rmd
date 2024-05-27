@@ -37,6 +37,27 @@ str(clean_data)
 ```
 
 ```{r}
+#EDA
+# Install required packages if not already installed
+install.packages("tidyverse")
+
+# Load necessary libraries
+library(tidyverse)
+
+# Load the dataset
+data <- read_csv("bumh-rgsq_version_37.csv")
+
+# Display basic information about the dataset
+glimpse(data)
+
+# Count missing values in each column
+missing_values <- sapply(data, function(x) sum(is.na(x)))
+missing_values
+
+# Summary statistics for numerical columns
+summary(data %>% select(where(is.numeric)))
+
+
 
 
 
