@@ -57,9 +57,162 @@ missing_values
 # Summary statistics for numerical columns
 summary(data %>% select(where(is.numeric)))
 
+# Visualize the distribution of key numerical variables
+data %>%
+  select(data_value, moe, totalpopulation) %>%
+  gather(key = "variable", value = "value") %>%
+  ggplot(aes(x = value)) +
+  geom_histogram(bins = 30, fill = "blue", alpha = 0.7) +
+  facet_wrap(~variable, scales = "free_x") +
+  theme_minimal() +
+  labs(title = "Distribution of Key Numerical Variables")
+
+# Correlation matrix
+correlation_matrix <- data %>%
+  select(data_value, moe, latitude, longitude, totalpopulation) %>%
+  cor(use = "complete.obs")
+
+# Visualize the correlation matrix
+library(ggcorrplot)
+ggcorrplot(correlation_matrix, method = "circle", lab = TRUE) +
+  labs(title = "Correlation Matrix")
+
+# Frequency distribution of categorical variables
+data %>%
+  select(measure, categoryid, short_question_text, datasource) %>%
+  gather(key = "variable", value = "value") %>%
+  count(variable, value) %>%
+  ggplot(aes(x = reorder(value, n), y = n, fill = variable)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  facet_wrap(~variable, scales = "free") +
+  theme_minimal() +
+  labs(title = "Frequency Distribution of Categorical Variables")
+
+# Visualize geographical distribution
+library(ggplot2)
+library(maps)
+
+world_map <- map_data("world")
+ggplot() +
+  geom_polygon(data = world_map, aes(x = long, y = lat, group = group), fill = "lightgray") +
+  geom_point(data = data, aes(x = longitude, y = latitude, color = totalpopulation), alpha = 0.7) +
+  theme_minimal() +
+  labs(title = "Geographical Distribution of Data Points",
+       x = "Longitude", y = "Latitude", color = "Total Population")
+
+# Fill missing values with the mean of their respective columns
+data <- data %>%
+  mutate(moe = ifelse(is.na(moe), mean(moe, na.rm = TRUE), moe),
+         data_value = ifelse(is.na(data_value), mean(data_value, na.rm = TRUE), data_value))
+
+# Verify that there are no missing values left
+sapply(data, function(x) sum(is.na(x)))
+
+# Box plot for 'data_value' across different 'categoryid'
+ggplot(data, aes(x = categoryid, y = data_value, fill = categoryid)) +
+  geom_boxplot() +
+  theme_minimal() +
+  labs(title = "Data Value Across Different Category IDs",
+       x = "Category ID", y = "Data Value")
+
+# Violin plot for 'data_value' across different 'measure'
+ggplot(data, aes(x = measure, y = data_value, fill = measure)) +
+  geom_violin() +
+  theme_minimal() +
+  labs(title = "Data Value Across Different Measures",
+       x = "Measure", y = "Data Value") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
 
 
 
 
 ```
+
+test
+```{r}
+# Load necessary libraries
+library(data.table)
+library(naniar)
+library(ggcorrplot)
+library(maps)
+
+# Load the dataset
+data <- fread("bumh-rgsq_version_37.csv")
+
+# Convert to data.table
+setDT(data)
+
+# Check missing data
+vis_miss(dplyr::slice_sample(data, n = 1000))
+
+# Fill missing values with the mean of their respective 'measure' groups
+data[, c("data_value", "moe") := lapply(.SD, function(x) {
+  mean_val <- mean(x, na.rm = TRUE)
+  ifelse(is.na(x), mean_val, x)
+}), .SDcols = c("data_value", "moe")]
+
+# Verify that there are no missing values left
+missing_counts <- data[, lapply(.SD, function(x) sum(is.na(x)))]
+
+# Print missing_counts
+print(missing_counts)
+
+# Exploratory Data Analysis (EDA)
+# Display basic information about the dataset
+glimpse(data)
+
+# Summary statistics for numerical columns
+summary(data[, .SD, .SDcols = sapply(data, is.numeric)])
+
+# Visualize the distribution of key numerical variables
+data[, .(data_value, moe, totalpopulation)] %>%
+  melt(measure.vars = c("data_value", "moe", "totalpopulation"), variable.name = "variable", value.name = "value") %>%
+  ggplot(aes(x = value)) +
+  geom_histogram(bins = 30, fill = "blue", alpha = 0.7) +
+  facet_wrap(~variable, scales = "free_x") +
+  theme_minimal() +
+  labs(title = "Distribution of Key Numerical Variables")
+
+# Correlation matrix
+correlation_matrix <- data[, .(data_value, moe, latitude, longitude, totalpopulation)] %>%
+  cor(use = "complete.obs")
+
+# Visualize the correlation matrix
+ggcorrplot(correlation_matrix, method = "circle", lab = TRUE) +
+  labs(title = "Correlation Matrix")
+
+# Frequency distribution of categorical variables
+data[, .(measure, categoryid, short_question_text, datasource)] %>%
+  melt(measure.vars = c("measure", "categoryid", "short_question_text", "datasource"), variable.name = "variable", value.name = "value") %>%
+  .[, .N, by = .(variable, value)] %>%
+  ggplot(aes(x = reorder(value, N), y = N, fill = variable)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  facet_wrap(~variable, scales = "free") +
+  theme_minimal() +
+  labs(title = "Frequency Distribution of Categorical Variables")
+
+# Visualize geographical distribution
+world_map <- map_data("world")
+ggplot() +
+  geom_polygon(data = world_map, aes(x = long, y = lat, group = group), fill = "lightgray") +
+  geom_point(data = data, aes(x = longitude, y = latitude, color = totalpopulation), alpha = 0.7) +
+  theme_minimal() +
+  labs(title = "Geographical Distribution of Data Points",
+       x = "Longitude", y = "Latitude", color = "Total Population")
+
+# Violin plot for 'data_value' across different 'measure'
+data[, .(measure, data_value)] %>%
+  ggplot(aes(x = measure, y = data_value, fill = measure)) +
+  geom_violin() +
+  theme_minimal() +
+  labs(title = "Data Value Across Different Measures",
+       x = "Measure", y = "Data Value") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+```
+
+
 
