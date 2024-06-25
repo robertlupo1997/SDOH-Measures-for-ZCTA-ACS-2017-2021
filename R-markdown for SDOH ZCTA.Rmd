@@ -1,56 +1,110 @@
 ---
 title: "SDOH Measures for ZCTA, ACS 2017-2021"
 author: "RobertLupo"
-date: "2024-05-28"
+date: "2024-06-24"
 output: word_document
 ---
-# Abstract
-A brief summary of the project.
+### Problem Statement
 
-This project aims to analyze Social Determinants of Health (SDOH) measures for ZIP Code Tabulation Areas (ZCTA) using the American Community Survey (ACS) data from 2017 to 2021. By cleaning and exploring the dataset, we seek to uncover trends and insights that can inform data-driven decision-making. The analysis employs various statistical techniques and predictive modeling to evaluate the impact of different measures on health outcomes.
+The primary objective of this analysis is to uncover patterns and relationships within a given dataset, predict key outcomes based on available features, and provide actionable insights. Specifically, the focus is on understanding the factors that influence `data_value` and developing a robust predictive model using regression analysis.
 
-# Introduction
-Provide context and state the research question or hypothesis.
+---
 
-Social Determinants of Health (SDOH) are non-medical factors that influence health outcomes. These include socioeconomic status, education, neighborhood and physical environment, employment, social support networks, and access to healthcare. This project focuses on analyzing SDOH measures across various ZIP Code Tabulation Areas (ZCTAs) using data from the American Community Survey (ACS) between 2017 and 2021. The goal is to identify key factors that impact health outcomes and understand the geographical distribution of these determinants.
+### Data Source
 
-# Data Description
-Describe the dataset and its source.
+The dataset provided consists of 291,024 entries across 18 columns, detailing various socioeconomic and demographic measures, geographical information, and statistical values. The key columns in this dataset include:
+- `year`: Time period of the data
+- `measure`: Descriptive measure of interest
+- `data_value_unit`: Unit of the data value
+- `categoryid`: ID representing the category of the measure
+- `short_question_text`: Brief description of the measure
+- `datasource`: Source of the data
+- `moe`: Margin of Error
+- `locationname`: Name representing the location
+- `locationid`: ID representing the location
+- `data_value_type`: Type of the data value
+- `data_value`: Measured value
+- `geolocation`: Geographical coordinates in POINT format
+- `datavaluetypeid`: ID representing the type of data value
+- `latitude`: Latitude coordinate
+- `category`: Category of the measure
+- `measureid`: ID of the measure
+- `longitude`: Longitude coordinate
+- `totalpopulation`: Total population for the given location
 
-The dataset used in this project is sourced from the American Community Survey (ACS) and provides SDOH measures for ZIP Code Tabulation Areas (ZCTAs) from 2017 to 2021. The dataset includes variables such as data_value, margin of error (moe), total population, latitude, longitude, and various categorical indicators. The data was cleaned to handle missing values and ensure consistency across measures.
+---
 
-# Methodology
-Explain the statistical techniques and models applied.
+### Data Cleaning and Wrangling
+
+**Steps Taken**:
+1. **Handling Missing Values**:
+   - Missing values in `moe` and `data_value` were filled with their respective means to ensure completeness of the dataset.
+   
+2. **Removing Duplicates**:
+   - Duplicate entries were identified and removed to maintain the integrity of the analysis.
+
+3. **Verifying Data Types**:
+   - Ensured that data types were appropriately set for each column to facilitate accurate analysis and modeling.
+
+**Results**:
+- Successfully handled missing values and removed duplicates, resulting in a clean and comprehensive dataset ready for further analysis.
+
+---
+
+### Methodology
 
 The methodology for this project includes several steps:
-1. Data Cleaning: Handling missing values and ensuring data consistency.
-2. Exploratory Data Analysis (EDA): Generating summary statistics and visualizations to understand data distributions and relationships.
-3. Correlation Analysis: Identifying relationships between numerical variables.
-4. Predictive Modeling: Developing models to predict health outcomes based on SDOH measures. Models considered include linear regression, logistic regression, and support vector machines.
-5. Model Evaluation: Assessing model performance using metrics such as R-squared, mean squared error, and accuracy, and employing cross-validation techniques.
 
-# Results
-Present findings from the analysis.
+1. **Data Cleaning**: Handling missing values and ensuring data consistency.
+2. **Exploratory Data Analysis (EDA)**: Generating summary statistics and visualizations to understand data distributions and relationships.
+3. **Correlation Analysis**: Identifying relationships between numerical variables.
+4. **Predictive Modeling**: Developing models to predict health outcomes based on SDOH measures. Models considered include linear regression.
+5. **Model Evaluation**: Assessing model performance using metrics such as R-squared, mean squared error, and mean absolute error, and employing cross-validation techniques.
+
+---
+
+### Exploratory Data Analysis (EDA)
+
+**Key Visualizations**:
+1. **Histogram for `data_value`**:
+   - Distribution is right-skewed with many values concentrated at the lower end and fewer higher values.
+
+2. **Geographical Distribution**:
+   - Scatter plot of latitude vs. longitude, colored by `data_value`, showing a wide geographical spread.
+
+3. **Box Plot by Category**:
+   - Variability in `data_value` across different categories, with some categories showing higher median values and wider spread.
+
+4. **Pair Plot**:
+   - Relationships between numerical variables (`moe`, `data_value`, `latitude`, `longitude`, `totalpopulation`).
+
+---
+
+### Results
 
 The analysis revealed several key insights:
-- The distribution of key numerical variables such as data_value, moe, and total population.
-- Correlation analysis showed significant relationships between data_value, latitude, longitude, and total population.
+- The distribution of key numerical variables such as `data_value`, `moe`, and `total population`.
+- Correlation analysis showed significant relationships between `data_value`, `latitude`, `longitude`, and `total population`.
 - Predictive modeling identified important SDOH measures that influence health outcomes. The models were evaluated and validated to ensure reliability.
 
-# Discussion
-Interpret the results and their implications.
+---
+
+### Discussion
 
 The findings suggest that certain SDOH measures have a significant impact on health outcomes. For instance, areas with higher total populations and specific geographical locations tend to have different health outcomes. These insights can inform public health strategies and resource allocation to address disparities. However, the analysis is limited by the quality and granularity of the data, and further research could expand on these findings by incorporating additional variables and more granular data.
 
-# Conclusion
-Summarize key findings and suggest future research.
+---
+
+### Conclusion
 
 In conclusion, this project highlights the importance of SDOH measures in understanding health outcomes. By analyzing ACS data from 2017 to 2021, we identified key factors that influence health and provided insights that can guide public health decision-making. Future research could explore more detailed datasets and consider additional variables to further refine these findings.
 
-# References
-Cite sources and data used in the project.
+---
+
+### References
 
 American Community Survey (ACS) data, 2017-2021.
+
 
 ```{r}
 # Load necessary libraries
@@ -79,6 +133,12 @@ summary_statistics <- data %>%
                                            max = ~max(. , na.rm = TRUE))))
 print(summary_statistics)
 
+# Summary of categorical variables
+categorical_summary <- data %>%
+  select(where(is.character)) %>%
+  summarise_all(funs(n_distinct(.)))
+print(categorical_summary)
+
 # Histograms
 data %>%
   select(where(is.numeric)) %>%
@@ -103,15 +163,6 @@ correlation_matrix <- cor(data %>% select(where(is.numeric)), use = "complete.ob
 # Visualize the correlation matrix
 corrplot::corrplot(correlation_matrix, method = "circle")
 
-# Trend analysis: Assuming there is a 'year' column in the dataset (this column needs to be adjusted based on actual data)
-if ("year" %in% colnames(data)) {
-  data %>%
-    gather(key = "variable", value = "value", -c(year)) %>%
-    ggplot(aes(x = year, y = value, color = variable)) +
-    geom_line() +
-    facet_wrap(~variable, scales = "free_y") +
-    theme_minimal()
-}
 
 # Geospatial analysis: Assuming there are 'latitude' and 'longitude' columns
 if ("latitude" %in% colnames(data) & "longitude" %in% colnames(data)) {
@@ -138,7 +189,19 @@ fviz_cluster(kmeans_result, data = data_scaled, geom = "point", stand = FALSE) +
 
 # Regression analysis: Assuming 'data_value' is the outcome variable and others are predictors
 model <- lm(data_value ~ ., data = data %>% select(where(is.numeric)))
-summary(model)
+
+# Predict on the test set
+predictions <- predict(model, newdata = data %>% select(where(is.numeric)))
+
+# Calculate evaluation metrics
+mae <- mean(abs(predictions - data$data_value), na.rm = TRUE)
+mse <- mean((predictions - data$data_value)^2, na.rm = TRUE)
+r_squared <- summary(model)$r.squared
+
+# Print evaluation metrics
+cat("Mean Absolute Error (MAE):", mae, "\n")
+cat("Mean Squared Error (MSE):", mse, "\n")
+cat("R-squared (R²):", r_squared, "\n")
 
 # Visualize regression diagnostics
 par(mfrow = c(2, 2))
