@@ -4,70 +4,47 @@ author: "RobertLupo"
 date: "2024-05-28"
 output: word_document
 ---
-```{r abstract, echo=FALSE}
-# Abstract: A brief summary of the project.
+Abstract: A brief summary of the project.
 abstract <- "This project aims to analyze Social Determinants of Health (SDOH) measures for ZIP Code Tabulation Areas (ZCTA) using the American Community Survey (ACS) data from 2017 to 2021. By cleaning and exploring the dataset, we seek to uncover trends and insights that can inform data-driven decision-making. The analysis employs various statistical techniques and predictive modeling to evaluate the impact of different measures on health outcomes."
-cat(abstract)
-```
 
-### Introduction
-```{r introduction, echo=FALSE}
-# Introduction: Provide context and state the research question or hypothesis.
+
+Introduction: Provide context and state the research question or hypothesis.
 introduction <- "Social Determinants of Health (SDOH) are non-medical factors that influence health outcomes. These include socioeconomic status, education, neighborhood and physical environment, employment, social support networks, and access to healthcare. This project focuses on analyzing SDOH measures across various ZIP Code Tabulation Areas (ZCTAs) using data from the American Community Survey (ACS) between 2017 and 2021. The goal is to identify key factors that impact health outcomes and understand the geographical distribution of these determinants."
-cat(introduction)
-```
 
-### Data Description
-```{r data_description, echo=FALSE}
-# Data Description: Describe the dataset and its source.
+
+Data Description: Describe the dataset and its source.
 data_description <- "The dataset used in this project is sourced from the American Community Survey (ACS) and provides SDOH measures for ZIP Code Tabulation Areas (ZCTAs) from 2017 to 2021. The dataset includes variables such as data_value, margin of error (moe), total population, latitude, longitude, and various categorical indicators. The data was cleaned to handle missing values and ensure consistency across measures."
-cat(data_description)
-```
 
 
-### Methodology
-```{r methodology, echo=FALSE}
-# Methodology: Explain the statistical techniques and models applied.
+
+Methodology: Explain the statistical techniques and models applied.
 methodology <- "The methodology for this project includes several steps:
 1. Data Cleaning: Handling missing values and ensuring data consistency.
 2. Exploratory Data Analysis (EDA): Generating summary statistics and visualizations to understand data distributions and relationships.
 3. Correlation Analysis: Identifying relationships between numerical variables.
 4. Predictive Modeling: Developing models to predict health outcomes based on SDOH measures. Models considered include linear regression, logistic regression, and support vector machines.
 5. Model Evaluation: Assessing model performance using metrics such as R-squared, mean squared error, and accuracy, and employing cross-validation techniques."
-cat(methodology)
-```
 
-### Results
-```{r results, echo=FALSE}
-# Results: Present findings from the analysis.
+
+Results: Present findings from the analysis.
 results <- "The analysis revealed several key insights:
 - The distribution of key numerical variables such as data_value, moe, and total population.
 - Correlation analysis showed significant relationships between data_value, latitude, longitude, and total population.
 - Predictive modeling identified important SDOH measures that influence health outcomes. The models were evaluated and validated to ensure reliability."
-cat(results)
-```
 
 
-### Discussion/Interpretation of Results
-```{r discussion, echo=FALSE}
-# Discussion: Interpret the results and their implications.
+
+Discussion: Interpret the results and their implications.
 discussion <- "The findings suggest that certain SDOH measures have a significant impact on health outcomes. For instance, areas with higher total populations and specific geographical locations tend to have different health outcomes. These insights can inform public health strategies and resource allocation to address disparities. However, the analysis is limited by the quality and granularity of the data, and further research could expand on these findings by incorporating additional variables and more granular data."
-cat(discussion)
-```
 
-### Conclusion
-```{r conclusion, echo=FALSE}
-# Conclusion: Summarize key findings and suggest future research.
+
+Conclusion: Summarize key findings and suggest future research.
 conclusion <- "In conclusion, this project highlights the importance of SDOH measures in understanding health outcomes. By analyzing ACS data from 2017 to 2021, we identified key factors that influence health and provided insights that can guide public health decision-making. Future research could explore more detailed datasets and consider additional variables to further refine these findings."
-cat(conclusion)
-```
 
-### References
-```{r references, echo=FALSE}
-# References: Cite sources and data used in the project.
+
+References: Cite sources and data used in the project.
 references <- "American Community Survey (ACS) data, 2017-2021."
-cat(references)
-```
+
 
 ```{r setup, include=FALSE}
 # Load necessary libraries
@@ -207,5 +184,60 @@ data[, .(measure, data_value)] %>%
 
 ```
 
+```{r}
+# Select relevant columns for clustering
+clustering_data <- data %>% 
+  select(locationname, measureid, data_value) %>% 
+  spread(key = measureid, value = data_value) %>% 
+  na.omit()
+
+# Scale the data
+clustering_data_scaled <- scale(clustering_data[, -1])
+
+# Perform k-means clustering
+set.seed(123)
+kmeans_result <- kmeans(clustering_data_scaled, centers = 3, nstart = 25)
+
+# Add cluster assignments to the data
+clustering_data$cluster <- kmeans_result$cluster
+
+# Visualize the clustering result
+fviz_cluster(kmeans_result, data = clustering_data_scaled, 
+             geom = "point", stand = FALSE, 
+             ellipse.type = "norm", show.clust.cent = TRUE) +
+  theme_minimal() +
+  labs(title = "K-means Clustering of Locations")
+
+```
+
+```{r}
+# Regression analysis to determine impact on poverty levels
+regression_data <- data %>% 
+  filter(measureid %in% c("NOHSDP", "UNEMP", "POV150")) %>% 
+  spread(key = measureid, value = data_value) %>% 
+  na.omit()
+
+# Perform linear regression
+regression_model <- lm(POV150 ~ NOHSDP + UNEMP, data = regression_data)
+
+# Summary of the regression model
+summary(regression_model)
+```
+
+```{r}
+# Filter data for comparison by state
+state_comparison <- data %>% 
+  filter(locationname %in% c("State1", "State2")) %>% 
+  select(locationname, measureid, data_value) %>% 
+  spread(key = measureid, value = data_value)
+
+# Summary statistics for the selected states
+state_comparison_summary <- state_comparison %>% 
+  group_by(locationname) %>% 
+  summarise_all(list(mean = mean, sd = sd), na.rm = TRUE)
+
+# Print summary statistics
+print(state_comparison_summary)
+```
 
 
